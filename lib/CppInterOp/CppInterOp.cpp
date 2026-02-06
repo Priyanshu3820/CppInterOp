@@ -2727,7 +2727,8 @@ int get_wrapper_code(compat::Interpreter& I, const FunctionDecl* FD,
     case FunctionDecl::TK_FunctionTemplate: {
       // This decl is actually a function template,
       // not a function at all.
-      llvm::errs() << "TClingCallFunc::make_wrapper" << ":"
+      llvm::errs() << "TClingCallFunc::make_wrapper" 
+                   << ":"
                    << "Cannot make wrapper for a function template!";
       return 0;
     } break;
@@ -2899,7 +2900,8 @@ int get_wrapper_code(compat::Interpreter& I, const FunctionDecl* FD,
     default: {
       // Will only happen if clang implementation changes.
       // Protect ourselves in case that happens.
-      llvm::errs() << "TClingCallFunc::make_wrapper" << ":"
+      llvm::errs() << "TClingCallFunc::make_wrapper"
+                   << ":"
                    << "Unhandled template kind!";
       return 0;
     } break;
@@ -2960,7 +2962,8 @@ int get_wrapper_code(compat::Interpreter& I, const FunctionDecl* FD,
     case FunctionDecl::TK_FunctionTemplate: {
       // This decl is actually a function template,
       // not a function at all.
-      llvm::errs() << "TClingCallFunc::make_wrapper" << ":"
+      llvm::errs() << "TClingCallFunc::make_wrapper"
+                   << ":"
                    << "Cannot make wrapper for a function template!";
       return 0;
     } break;
@@ -3044,7 +3047,8 @@ int get_wrapper_code(compat::Interpreter& I, const FunctionDecl* FD,
     default: {
       // Will only happen if clang implementation changes.
       // Protect ourselves in case that happens.
-      llvm::errs() << "TClingCallFunc::make_wrapper" << ":"
+      llvm::errs() << "TClingCallFunc::make_wrapper"
+                   << ":"
                    << "Unhandled template kind!";
       return 0;
     } break;
@@ -3136,7 +3140,8 @@ JitCall::GenericCall make_wrapper(compat::Interpreter& I,
   if (wrapper) {
     gWrapperStore.insert(std::make_pair(FD, wrapper));
   } else {
-    llvm::errs() << "TClingCallFunc::make_wrapper" << ":"
+    llvm::errs() << "TClingCallFunc::make_wrapper"
+                 << ":"
                  << "Failed to compile\n"
                  << "==== SOURCE BEGIN ====\n"
                  << wrapper_code << "\n"

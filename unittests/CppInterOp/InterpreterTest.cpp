@@ -371,7 +371,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, Interpreter_ExternalInterpreter) {
                                            "-std=c++14"};
     ClingArgv.insert(ClingArgv.begin(), MainExecutableName.c_str());
     auto *ExtInterp = new compat::Interpreter(ClingArgv.size(), &ClingArgv[0]);
-    #endif
+#endif
 
   EXPECT_NE(ExtInterp, nullptr);
 
