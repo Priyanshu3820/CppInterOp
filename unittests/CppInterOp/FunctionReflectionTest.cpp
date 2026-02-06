@@ -3115,3 +3115,156 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
   EXPECT_EQ(Cpp::GetFunctionSignature(func_const),
             "int MyClass::foo(int i) const");
 }
+
+TYPED_TEST(CPPINTEROP_TEST_MODE,
+           FunctionReflection_BestOverloadFunctionMatch_NoViable) {
+  std::vector<Decl*> Decls;
+  std::string code = R"(
+    class MyClass {
+    public:
+      int foo(int i) { return i * 2; }
+    };
+  )";
+
+  GetAllTopLevelDecls(code, Decls);
+
+  Cpp::TCppScope_t myclass = nullptr;
+  for (auto* D : Decls) {
+    if (Cpp::IsClass(D) && Cpp::GetName(D) == "MyClass") {
+      myclass = D;
+      break;
+    }
+  }
+  ASSERT_TRUE(myclass != nullptr);
+
+  std::vector<Cpp::TCppFunction_t> candidates;
+  std::vector<Cpp::TCppFunction_t> all_methods;
+  Cpp::GetClassMethods(myclass, all_methods);
+
+  for (auto* method : all_methods) {
+    if (Cpp::GetName(method) == "foo")
+      candidates.push_back(method);
+  }
+
+  ASSERT_EQ(candidates.size(), 1);
+
+  ASTContext& C = Interp->getCI()->getASTContext();
+  std::vector<Cpp::TemplateArgInfo> args = {C.IntTy.getAsOpaquePtr()};
+  std::vector<Cpp::TemplateArgInfo> explicit_args;
+
+  // Call without providing an invoking object type. This should return
+  // nullptr because the candidate is a member function and there is no object
+  // to call it on.
+  Cpp::TCppFunction_t fn =
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args);
+  EXPECT_TRUE(fn == nullptr);
+}
+
+TYPED_TEST(CPPINTEROP_TEST_MODE,
+           FunctionReflection_BestOverloadFunctionMatch_RefQualified) {
+  std::vector<Decl*> Decls;
+  std::string code = R"(
+    class MyClass {
+    public:
+      int foo() & { return 1; }
+      int foo() && { return 2; }
+    };
+
+    MyClass obj;
+  )";
+
+  GetAllTopLevelDecls(code, Decls);
+
+  Cpp::TCppScope_t myclass = nullptr;
+  for (auto* D : Decls) {
+    if (Cpp::IsClass(D) && Cpp::GetName(D) == "MyClass") {
+      myclass = D;
+      break;
+    }
+  }
+  ASSERT_TRUE(myclass != nullptr);
+
+  // Get all methods named "foo"
+  std::vector<Cpp::TCppFunction_t> candidates;
+  std::vector<Cpp::TCppFunction_t> all_methods;
+  Cpp::GetClassMethods(myclass, all_methods);
+
+  for (auto* method : all_methods) {
+    if (Cpp::GetName(method) == "foo") {
+      candidates.push_back(method);
+    }
+  }
+
+  ASSERT_EQ(candidates.size(), 2);
+
+  std::vector<Cpp::TemplateArgInfo> args;
+  std::vector<Cpp::TemplateArgInfo> explicit_args;
+
+  ASTContext& C = Interp->getCI()->getASTContext();
+
+  // lvalue object (MyClass&)
+  Cpp::TCppType_t non_const_obj_type = Cpp::GetTypeFromScope(myclass);
+  Cpp::TCppType_t non_const_ref_type =
+      Cpp::GetReferencedType(non_const_obj_type, false);
+
+  Cpp::TCppFunction_t func_lvalue = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args, args, non_const_ref_type);
+
+  ASSERT_TRUE(func_lvalue != nullptr);
+  EXPECT_EQ(Cpp::GetFunctionSignature(func_lvalue), "int MyClass::foo() &");
+
+  // rvalue object (MyClass&&)
+  Cpp::TCppType_t rvalue_ref_type =
+      Cpp::GetReferencedType(non_const_obj_type, true);
+
+  Cpp::TCppFunction_t func_rvalue = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args, args, rvalue_ref_type);
+
+  ASSERT_TRUE(func_rvalue != nullptr);
+  EXPECT_EQ(Cpp::GetFunctionSignature(func_rvalue), "int MyClass::foo() &&");
+}
+
+TYPED_TEST(CPPINTEROP_TEST_MODE,
+           FunctionReflection_BestOverloadFunctionMatch_StaticMethodNoObject) {
+  std::vector<Decl*> Decls;
+  std::string code = R"(
+    class MyClass {
+    public:
+      static int foo() { return 1; }
+      int foo(int i) { return i; }
+    };
+  )";
+
+  GetAllTopLevelDecls(code, Decls);
+
+  Cpp::TCppScope_t myclass = nullptr;
+  for (auto* D : Decls) {
+    if (Cpp::IsClass(D) && Cpp::GetName(D) == "MyClass") {
+      myclass = D;
+      break;
+    }
+  }
+  ASSERT_TRUE(myclass != nullptr);
+
+  std::vector<Cpp::TCppFunction_t> candidates;
+  std::vector<Cpp::TCppFunction_t> all_methods;
+  Cpp::GetClassMethods(myclass, all_methods);
+
+  for (auto* method : all_methods) {
+    if (Cpp::GetName(method) == "foo")
+      candidates.push_back(method);
+  }
+
+  ASSERT_EQ(candidates.size(), 2);
+
+  std::vector<Cpp::TemplateArgInfo> args;
+  std::vector<Cpp::TemplateArgInfo> explicit_args;
+
+  // Call without providing an invoking object type. Static method must be
+  // chosen.
+  Cpp::TCppFunction_t fn =
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args);
+
+  ASSERT_TRUE(fn != nullptr);
+  EXPECT_EQ(Cpp::GetFunctionSignature(fn), "static int MyClass::foo()");
+}
