@@ -487,10 +487,10 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionReturnType) {
                                             C.DoubleTy.getAsOpaquePtr()};
   std::vector<Cpp::TemplateArgInfo> explicit_args;
   std::vector<Cpp::TCppFunction_t> candidates = {Decls[14]};
-  EXPECT_EQ(
-      Cpp::GetTypeAsString(Cpp::GetFunctionReturnType(
-          Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args))),
-      "RTTest_TemplatedList<int, double>");
+  EXPECT_EQ(Cpp::GetTypeAsString(
+                Cpp::GetFunctionReturnType(Cpp::BestOverloadFunctionMatch(
+                    candidates, explicit_args, args, nullptr))),
+            "RTTest_TemplatedList<int, double>");
 
   std::vector<Cpp::TemplateArgInfo> args2 = {C.DoubleTy.getAsOpaquePtr()};
   EXPECT_EQ(Cpp::GetTypeAsString(Cpp::GetFunctionReturnType(Cpp::GetNamed(
@@ -1029,15 +1029,16 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
       C.IntTy.getAsOpaquePtr(),
   };
 
-  Cpp::TCppScope_t fn0 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args0, args0);
+  Cpp::TCppScope_t fn0 = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args0, args0, nullptr);
   EXPECT_TRUE(fn0);
 
-  Cpp::TCppScope_t fn =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args1, args0);
+  Cpp::TCppScope_t fn = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args1, args0, nullptr);
   EXPECT_EQ(fn, fn0);
 
-  fn = Cpp::BestOverloadFunctionMatch(candidates, explicit_args2, args0);
+  fn = Cpp::BestOverloadFunctionMatch(candidates, explicit_args2, args0,
+                                      nullptr);
   EXPECT_EQ(fn, fn0);
 
   fn = Cpp::InstantiateTemplate(Decls[0], explicit_args1.data(),
@@ -1193,15 +1194,15 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
   std::vector<Cpp::TemplateArgInfo> explicit_args;
 
   Cpp::TCppFunction_t func1 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args1);
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args1, nullptr);
   Cpp::TCppFunction_t func2 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args2);
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args2, nullptr);
   Cpp::TCppFunction_t func3 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args3);
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args3, nullptr);
   Cpp::TCppFunction_t func4 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args4);
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args4, nullptr);
   Cpp::TCppFunction_t func5 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args5);
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args5, nullptr);
 
   EXPECT_EQ(Cpp::GetFunctionSignature(func1),
             "template<> void somefunc<int>(int arg)");
@@ -1265,11 +1266,11 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
   std::vector<Cpp::TemplateArgInfo> explicit_args;
 
   Cpp::TCppFunction_t func1 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args1);
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args1, nullptr);
   Cpp::TCppFunction_t func2 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args2);
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args2, nullptr);
   Cpp::TCppFunction_t func3 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args3);
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args3, nullptr);
 
   candidates.clear();
   Cpp::GetOperator(Cpp::GetScopeFromType(
@@ -1410,7 +1411,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
   };
 
   Cpp::TCppScope_t callback =
-      Cpp::BestOverloadFunctionMatch(candidates, empty_templ_args, arg_types);
+      Cpp::BestOverloadFunctionMatch(candidates, empty_templ_args, arg_types, nullptr);
   EXPECT_TRUE(callback);
 
   EXPECT_EQ(Cpp::GetFunctionSignature(callback),
@@ -2050,7 +2051,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
                    Cpp::Operator::OP_Plus, operators DFLT_OP_ARITY);
   EXPECT_EQ(operators.size(), 1);
   Cpp::TCppFunction_t kop =
-      Cpp::BestOverloadFunctionMatch(operators, empty_templ_args, {K1, K2});
+      Cpp::BestOverloadFunctionMatch(operators, empty_templ_args, {K1, K2}, nullptr);
   auto chrono_op_fn_callable = Cpp::MakeFunctionCallable(kop);
   EXPECT_EQ(chrono_op_fn_callable.getKind(), Cpp::JitCall::kGenericCall);
 
@@ -3179,7 +3180,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
   // nullptr because the candidate is a member function and there is no object
   // to call it on.
   Cpp::TCppFunction_t fn =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args);
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args, nullptr);
   EXPECT_TRUE(fn == nullptr);
 }
 
@@ -3286,7 +3287,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
   // Call without providing an invoking object type. Static method must be
   // chosen.
   Cpp::TCppFunction_t fn =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args);
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args, nullptr);
 
   ASSERT_TRUE(fn != nullptr);
   EXPECT_EQ(Cpp::GetFunctionSignature(fn), "static int MyClass::foo()");
