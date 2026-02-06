@@ -306,7 +306,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionsUsingName) {
   // This lambda can take in the scope and the name of the function
   // and returns the size of the vector returned by GetFunctionsUsingName
   auto get_number_of_funcs_using_name = [&](Cpp::TCppScope_t scope,
-          const std::string& name) {
+          const std::string &name) {
     auto Funcs = Cpp::GetFunctionsUsingName(scope, name);
 
     return Funcs.size();
@@ -1019,12 +1019,12 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
       C.IntTy.getAsOpaquePtr(),
   };
 
-  Cpp::TCppScope_t fn0 = 
-  Cpp::BestOverloadFunctionMatch( candidates, explicit_args0, args0, nullptr);
+  Cpp::TCppScope_t fn0 =
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args0, args0, nullptr);
   EXPECT_TRUE(fn0);
 
-  Cpp::TCppScope_t fn = 
-  Cpp::BestOverloadFunctionMatch( candidates, explicit_args1, args0, nullptr);
+  Cpp::TCppScope_t fn =
+      Cpp::BestOverloadFunctionMatch(candidates, explicit_args1, args0, nullptr);
   EXPECT_EQ(fn, fn0);
 
   fn = Cpp::BestOverloadFunctionMatch(candidates, explicit_args2, args0, nullptr);
@@ -1829,7 +1829,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
     }
   )");
 
-  Cpp::JitCall FCI1 = 
+  Cpp::JitCall FCI1 =
       Cpp::MakeFunctionCallable(Decls[0]);
   EXPECT_TRUE(FCI1.getKind() == Cpp::JitCall::kGenericCall);
   Cpp::JitCall FCI2 =
@@ -1881,7 +1881,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
   )");
 
   clang::NamedDecl* ClassC = (clang::NamedDecl*)Cpp::GetNamed("C" DFLT_NULLPTR);
-  auto* CtorD = (clang::CXXConstructorDecl*)Cpp::GetDefaultConstructor(ClassC);
+  auto *CtorD = (clang::CXXConstructorDecl*)Cpp::GetDefaultConstructor(ClassC);
   auto FCI_Ctor = 
     Cpp::MakeFunctionCallable(CtorD);
   void* object = nullptr;
@@ -1891,8 +1891,8 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
   EXPECT_EQ(output, "Default Ctor Called\n");
   EXPECT_TRUE(object != nullptr);
 
-  auto* DtorD = (clang::CXXDestructorDecl*)Cpp::GetDestructor(ClassC);
-  auto FCI_Dtor = 
+  auto *DtorD = (clang::CXXDestructorDecl*)Cpp::GetDestructor(ClassC);
+  auto FCI_Dtor =
     Cpp::MakeFunctionCallable(DtorD);
   testing::internal::CaptureStdout();
   FCI_Dtor.Invoke(object);
