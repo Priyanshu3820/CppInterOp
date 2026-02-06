@@ -2722,7 +2722,7 @@ int get_wrapper_code(compat::Interpreter& I, const FunctionDecl* FD,
     case FunctionDecl::TK_FunctionTemplate: {
       // This decl is actually a function template,
       // not a function at all.
-      llvm::errs() << "TClingCallFunc::make_wrapper" 
+      llvm::errs() << "TClingCallFunc::make_wrapper"
                    << ":"
                    << "Cannot make wrapper for a function template!";
       return 0;
