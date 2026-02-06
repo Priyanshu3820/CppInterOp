@@ -2163,7 +2163,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
             Cpp::JitCall::kGenericCall);
 
   instantiation_in_host = Cpp::BestOverloadFunctionMatch(
-      unresolved_candidate_methods, {Cpp::GetType("double")}, {});
+      unresolved_candidate_methods, {Cpp::GetType("double")}, {}, nullptr);
   EXPECT_TRUE(instantiation_in_host);
 
   Cpp::BeginStdStreamCapture(Cpp::CaptureStreamKind::kStdErr);
@@ -2193,7 +2193,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
   Cpp::TCppScope_t tuple_tuple = Cpp::BestOverloadFunctionMatch(
       unresolved_candidate_methods, {},
       {Cpp::GetVariableType(Cpp::GetNamed("tuple_one" DFLT_NULLPTR)),
-       Cpp::GetVariableType(Cpp::GetNamed("tuple_two" DFLT_NULLPTR))});
+       Cpp::GetVariableType(Cpp::GetNamed("tuple_two" DFLT_NULLPTR))}, nullptr);
   EXPECT_TRUE(tuple_tuple);
 
   auto tuple_tuple_callable = Cpp::MakeFunctionCallable(tuple_tuple);
@@ -2233,7 +2233,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
 
   Cpp::TCppScope_t consume = Cpp::BestOverloadFunctionMatch(
       unresolved_candidate_methods, {},
-      {Cpp::GetVariableType(Cpp::GetNamed("consumable" DFLT_NULLPTR))});
+      {Cpp::GetVariableType(Cpp::GetNamed("consumable" DFLT_NULLPTR))}, nullptr);
   EXPECT_TRUE(consume);
 
   auto consume_callable = Cpp::MakeFunctionCallable(consume);
