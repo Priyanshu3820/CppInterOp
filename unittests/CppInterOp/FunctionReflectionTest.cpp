@@ -2154,7 +2154,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
   EXPECT_EQ(unresolved_candidate_methods.size(), 1);
 
   Cpp::TCppScope_t instantiation_in_host = Cpp::BestOverloadFunctionMatch(
-      unresolved_candidate_methods, {Cpp::GetType("int")}, {});
+      unresolved_candidate_methods, {Cpp::GetType("int")}, {}, nullptr);
   EXPECT_TRUE(instantiation_in_host);
 
   Cpp::JitCall instantiation_in_host_callable =
@@ -2508,7 +2508,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_Construct) {
   void* where = Cpp::Allocate(scope DFLT_1);
   EXPECT_TRUE(where == Cpp::Construct(scope, where DFLT_1));
   // Check for the value of x which should be at the start of the object.
-  EXPECT_TRUE(*(int*)where = = 12345);
+  EXPECT_TRUE(*(int*)where == 12345);
   Cpp::Deallocate(scope, where DFLT_1);
   output = testing::internal::GetCapturedStdout();
   EXPECT_EQ(output, "Constructor Executed");
@@ -2837,7 +2837,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_DestructArray) {
   testing::internal::CaptureStdout();
 
   // destruct the rest
-  auto* new_head = reinterpret_cast<void*>(reinterpret_cast<char*>(where) +
+  auto *new_head = reinterpret_cast<void*>(reinterpret_cast<char*>(where) +
                                            (Cpp::SizeOf(scope) * 3));
   EXPECT_TRUE(Cpp::Destruct(new_head, scope, false, 2));
 
