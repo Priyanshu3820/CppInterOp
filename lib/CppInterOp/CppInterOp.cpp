@@ -1407,25 +1407,13 @@ BestOverloadFunctionMatch(const std::vector<TCppFunction_t>& candidates,
   }
 
   OverloadCandidateSet::iterator Best;
-  auto OverloadResult = Overloads.BestViableFunction(S, SourceLocation(), Best);
+  Overloads.BestViableFunction(S, SourceLocation(), Best);
 
   FunctionDecl* Result = nullptr;
 
   // If overload resolution succeeded or found an ambiguous match, use it
   if (Best != Overloads.end()) {
     Result = Best->Function;
-  }
-  // If no viable function found (e.g., member functions called without object),
-  // fall back to returning the first candidate if available
-  else if (OverloadResult == OverloadingResult::OR_No_Viable_Function &&
-           !candidates.empty()) {
-    // Try to return the first FunctionDecl from candidates
-    for (void* cand : candidates) {
-      if (auto* FD = dyn_cast_or_null<FunctionDecl>(static_cast<Decl*>(cand))) {
-        Result = FD;
-        break;
-      }
-    }
   }
 
   delete[] Exprs;
