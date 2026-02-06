@@ -2837,8 +2837,9 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_DestructArray) {
   testing::internal::CaptureStdout();
 
   // destruct the rest
-  auto* newauto *new_head = reinterpret_cast<void*>(reinterpret_cast<char*>(where) +
-                                          (Cpp::SizeOf(scope) * 3));_TRUE(Cpp::Destruct(new_head, scope, false, 2));
+  auto* new_head = reinterpret_cast<void*>(reinterpret_cast<char*>(where) +
+                                           (Cpp::SizeOf(scope) * 3));
+  EXPECT_TRUE(Cpp::Destruct(new_head, scope, false, 2));
 
   output = testing::internal::GetCapturedStdout();
   EXPECT_EQ(output, "\nDestructor Executed\n\nDestructor Executed\n");
