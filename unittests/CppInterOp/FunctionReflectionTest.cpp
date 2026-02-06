@@ -1406,7 +1406,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
 }
 
 TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_IsPublicMethod) {
-  std::vector<Decl*> Decls, SubDecls;
+  std::vector<Decl *> Decls, SubDecls;
   std::string code = R"(
     class C {
     public:
