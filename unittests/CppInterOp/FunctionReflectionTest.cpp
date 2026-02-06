@@ -2275,7 +2275,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
   auto kp_int_lvalue = Cpp::GetReferencedType(kp_int_type, false);
   EXPECT_TRUE(kp_int_lvalue);
   op = Cpp::BestOverloadFunctionMatch(
-      operators, {}, {{Cpp::GetTypeFromScope(KlassProduct_float)}}, nullptr);
+      operators, {}, {{Cpp::GetTypeFromScope(KlassProduct_float)}}, kp_int_type);
   EXPECT_TRUE(op);
 
   auto op_callable = Cpp::MakeFunctionCallable(op);
