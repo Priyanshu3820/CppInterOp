@@ -1406,7 +1406,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
 }
 
 TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_IsPublicMethod) {
-  std::vector<Decl *> Decls, SubDecls;
+  std::vector<Decl*> Decls, SubDecls;
   std::string code = R"(
     class C {
     public:
@@ -2119,7 +2119,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
   EXPECT_TRUE(p);
 
   Cpp::TCppScope_t fn = Cpp::BestOverloadFunctionMatch(
-      unresolved_candidate_methods, {{Cpp::GetType("int"), "0"}}, {p});
+      unresolved_candidate_methods, {{Cpp::GetType("int"), "0"}}, {p}, nullptr);
   EXPECT_TRUE(fn);
 
   auto fn_callable = Cpp::MakeFunctionCallable(fn);
@@ -2139,7 +2139,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
 
   Cpp::TCppScope_t call_move = Cpp::BestOverloadFunctionMatch(
       unresolved_candidate_methods, {},
-      {Cpp::GetReferencedType(Cpp::GetType("int"), true)});
+      {Cpp::GetReferencedType(Cpp::GetType("int"), true)}, nullptr);
   EXPECT_TRUE(call_move);
 
   auto call_move_callable = Cpp::MakeFunctionCallable(call_move);
@@ -2275,7 +2275,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
   auto kp_int_lvalue = Cpp::GetReferencedType(kp_int_type, false);
   EXPECT_TRUE(kp_int_lvalue);
   op = Cpp::BestOverloadFunctionMatch(
-      operators, {}, {{Cpp::GetTypeFromScope(KlassProduct_float)}});
+      operators, {}, {{Cpp::GetTypeFromScope(KlassProduct_float)}}, nullptr);
   EXPECT_TRUE(op);
 
   auto op_callable = Cpp::MakeFunctionCallable(op);
@@ -2508,7 +2508,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_Construct) {
   void* where = Cpp::Allocate(scope DFLT_1);
   EXPECT_TRUE(where == Cpp::Construct(scope, where DFLT_1));
   // Check for the value of x which should be at the start of the object.
-  EXPECT_TRUE(*(int *)where == 12345);
+  EXPECT_TRUE(*(int*)where = = 12345);
   Cpp::Deallocate(scope, where DFLT_1);
   output = testing::internal::GetCapturedStdout();
   EXPECT_EQ(output, "Constructor Executed");
@@ -2837,9 +2837,8 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_DestructArray) {
   testing::internal::CaptureStdout();
 
   // destruct the rest
-  auto *new_head = reinterpret_cast<void*>(reinterpret_cast<char*>(where) +
-                                          (Cpp::SizeOf(scope) * 3));
-  EXPECT_TRUE(Cpp::Destruct(new_head, scope, false, 2));
+  auto* newauto *new_head = reinterpret_cast<void*>(reinterpret_cast<char*>(where) +
+                                          (Cpp::SizeOf(scope) * 3));_TRUE(Cpp::Destruct(new_head, scope, false, 2));
 
   output = testing::internal::GetCapturedStdout();
   EXPECT_EQ(output, "\nDestructor Executed\n\nDestructor Executed\n");
