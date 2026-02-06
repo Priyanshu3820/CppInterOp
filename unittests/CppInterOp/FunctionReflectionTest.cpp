@@ -1109,16 +1109,27 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
   std::vector<Cpp::TemplateArgInfo> explicit_args2 = {
       {C.IntTy.getAsOpaquePtr(), "1"}, C.IntTy.getAsOpaquePtr()};
 
-  Cpp::TCppFunction_t func1 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args0, args1);
-  Cpp::TCppFunction_t func2 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args1, args0);
-  Cpp::TCppFunction_t func3 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args0, args2);
-  Cpp::TCppFunction_t func4 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args1, args3);
-  Cpp::TCppFunction_t func5 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args2, args3);
+  Cpp::TCppScope_t myclass = nullptr;
+  for (auto* D : Decls) {
+    if (Cpp::IsClass(D) && Cpp::GetName(D) == "MyTemplatedMethodClass") {
+      myclass = D;
+      break;
+    }
+  }
+  ASSERT_TRUE(myclass != nullptr);
+  Cpp::TCppType_t myclass_type = Cpp::GetTypeFromScope(myclass);
+  Cpp::TCppType_t myclass_lvalue = Cpp::GetReferencedType(myclass_type, false);
+
+  Cpp::TCppFunction_t func1 = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args0, args1, myclass_lvalue);
+  Cpp::TCppFunction_t func2 = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args1, args0, myclass_lvalue);
+  Cpp::TCppFunction_t func3 = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args0, args2, myclass_lvalue);
+  Cpp::TCppFunction_t func4 = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args1, args3, myclass_lvalue);
+  Cpp::TCppFunction_t func5 = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args2, args3, myclass_lvalue);
 
   EXPECT_EQ(Cpp::GetFunctionSignature(func1),
             "template<> long MyTemplatedMethodClass::get_size<int>(int &)");
@@ -1270,8 +1281,12 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
   std::vector<Cpp::TemplateArgInfo> args4 = {
       Cpp::GetVariableType(Cpp::GetNamed("a" DFLT_NULLPTR))};
 
-  Cpp::TCppFunction_t func4 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args, args4);
+  Cpp::TCppType_t a_type =
+      Cpp::GetVariableType(Cpp::GetNamed("a" DFLT_NULLPTR));
+  Cpp::TCppType_t a_lvalue = Cpp::GetReferencedType(a_type, false);
+
+  Cpp::TCppFunction_t func4 = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args, args4, a_lvalue);
 
   EXPECT_EQ(Cpp::GetFunctionSignature(func1),
             "template<> A<int> operator+<int>(A<int> lhs, A<int> rhs)");
@@ -1334,16 +1349,20 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
   std::vector<Cpp::TemplateArgInfo> explicit_args2 = {C.IntTy.getAsOpaquePtr(),
                                                       C.IntTy.getAsOpaquePtr()};
 
-  Cpp::TCppFunction_t func1 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args1, args1);
-  Cpp::TCppFunction_t func2 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args1, args2);
-  Cpp::TCppFunction_t func3 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args1, args3);
-  Cpp::TCppFunction_t func4 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args1, args4);
-  Cpp::TCppFunction_t func5 =
-      Cpp::BestOverloadFunctionMatch(candidates, explicit_args2, args5);
+  // Provide invoking object type (B&) so member templates are considered
+  Cpp::TCppType_t b_type = Cpp::GetTypeFromScope(Decls[1]);
+  Cpp::TCppType_t b_lvalue = Cpp::GetReferencedType(b_type, false);
+
+  Cpp::TCppFunction_t func1 = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args1, args1, b_lvalue);
+  Cpp::TCppFunction_t func2 = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args1, args2, b_lvalue);
+  Cpp::TCppFunction_t func3 = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args1, args3, b_lvalue);
+  Cpp::TCppFunction_t func4 = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args1, args4, b_lvalue);
+  Cpp::TCppFunction_t func5 = Cpp::BestOverloadFunctionMatch(
+      candidates, explicit_args2, args5, b_lvalue);
 
   EXPECT_EQ(Cpp::GetFunctionSignature(func1), "void B::fn()");
   EXPECT_EQ(Cpp::GetFunctionSignature(func2),
@@ -2262,8 +2281,12 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, FunctionReflection_GetFunctionCallWrapper) {
                    operators DFLT_OP_ARITY);
   EXPECT_EQ(operators.size(), 2);
 
+  auto kp_int_type = Cpp::GetTypeFromScope(KlassProduct_int);
+  auto kp_int_lvalue = Cpp::GetReferencedType(kp_int_type, false);
+  EXPECT_TRUE(kp_int_lvalue);
   op = Cpp::BestOverloadFunctionMatch(
-      operators, {}, {{Cpp::GetTypeFromScope(KlassProduct_float)}});
+      operators, {}, {{Cpp::GetTypeFromScope(KlassProduct_float)}},
+      kp_int_lvalue);
   EXPECT_TRUE(op);
 
   auto op_callable = Cpp::MakeFunctionCallable(op);

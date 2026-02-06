@@ -1369,6 +1369,13 @@ BestOverloadFunctionMatch(const std::vector<TCppFunction_t>& candidates,
 
   for (void* i : candidates) {
     Decl* D = static_cast<Decl*>(i);
+    llvm::errs() << "Candidate decl kind: " << D->getDeclKindName();
+    if (auto* ND = dyn_cast<NamedDecl>(D))
+      llvm::errs() << " name: " << ND->getNameAsString();
+    llvm::errs() << " | isa<FunctionDecl>: " << isa<FunctionDecl>(D)
+                 << " | isa<CXXMethodDecl>: " << isa<CXXMethodDecl>(D)
+                 << " | isa<FunctionTemplateDecl>: "
+                 << isa<FunctionTemplateDecl>(D) << "\n";
 
     // Special handling for member functions when object type is provided
     if (has_invoking_object && ObjectArg) {
@@ -1382,6 +1389,16 @@ BestOverloadFunctionMatch(const std::vector<TCppFunction_t>& candidates,
 
     // Default behavior: regular function handling (backward compatible)
     if (auto* FD = dyn_cast<FunctionDecl>(D)) {
+      if (auto* MD = dyn_cast<CXXMethodDecl>(FD)) {
+        if (!has_invoking_object && !MD->isStatic()) {
+          llvm::errs() << "Skipping non-static method as non-member candidate: "
+                       << MD->getQualifiedNameAsString() << "\n";
+          continue;
+        }
+      }
+
+      llvm::errs() << "Adding overload candidate: "
+                   << FD->getQualifiedNameAsString() << "\n";
       S.AddOverloadCandidate(FD, DeclAccessPair::make(FD, FD->getAccess()),
                              Args, Overloads);
     } else if (auto* FTD = dyn_cast<FunctionTemplateDecl>(D)) {
@@ -1389,11 +1406,34 @@ BestOverloadFunctionMatch(const std::vector<TCppFunction_t>& candidates,
       // provided
       if (has_invoking_object && ObjectArg && FTD->getTemplatedDecl() &&
           isa<CXXMethodDecl>(FTD->getTemplatedDecl())) {
+        llvm::errs() << "Adding method template candidate: "
+                     << FTD->getQualifiedNameAsString() << "\n";
         S.AddMethodTemplateCandidate(
             FTD, DeclAccessPair::make(FTD, FTD->getAccess()),
             cast<CXXRecordDecl>(FTD->getDeclContext()), &ExplicitTemplateArgs,
             ObjectArg->getType(), ObjectArg->Classify(C), CallArgs, Overloads);
       } else {
+        // If the templated declaration is a non-static method and we do not
+        // have an invoking object, skip adding it as a non-member candidate.
+        if (FTD->getTemplatedDecl() &&
+            isa<CXXMethodDecl>(FTD->getTemplatedDecl())) {
+          auto* MD = cast<CXXMethodDecl>(FTD->getTemplatedDecl());
+          // Only skip when the templated decl was defined *within* the class.
+          // Out-of-class definitions live in the translation unit and should be
+          // allowed as non-member candidates
+          if (isa<CXXRecordDecl>(FTD->getDeclContext())) {
+            if (!has_invoking_object && !MD->isStatic()) {
+              llvm::errs()
+                  << "Skipping non-static method template as non-member "
+                     "candidate: "
+                  << MD->getQualifiedNameAsString() << "\n";
+              continue;
+            }
+          }
+        }
+
+        llvm::errs() << "Adding template overload candidate: "
+                     << FTD->getQualifiedNameAsString() << "\n";
         // AddTemplateOverloadCandidate is causing a memory leak
         // It is a known bug at clang
         // call stack: AddTemplateOverloadCandidate -> MakeDeductionFailureInfo
