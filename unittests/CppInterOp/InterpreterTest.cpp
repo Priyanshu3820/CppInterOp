@@ -70,7 +70,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, Interpreter_Evaluate) {
   if (TypeParam::isOutOfProcess)
     GTEST_SKIP() << "Test fails for OOP JIT builds";
   //  EXPECT_TRUE(Cpp::Evaluate(I, "") == 0);
-  // EXPECT_TRUE(Cpp::Evaluate(I, "__cplusplus;") == 201402);
+  //EXPECT_TRUE(Cpp::Evaluate(I, "__cplusplus;") == 201402);
   // Due to a deficiency in the clang-repl implementation to get the value we
   // always must omit the ;
   TestFixture::CreateInterpreter();
@@ -156,8 +156,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, Interpreter_Process) {
     GTEST_SKIP() << "Test fails for OOP JIT builds";
   if (llvm::sys::RunningOnValgrind())
     GTEST_SKIP() << "XFAIL due to Valgrind report";
-  std::vector<const char*> interpreter_args = {"-include", "new", "-Xclang",
-                                               "-iwithsysroot/include/compat"};
+  std::vector<const char*> interpreter_args = { "-include", "new", "-Xclang", "-iwithsysroot/include/compat" };
   auto* I = TestFixture::CreateInterpreter(interpreter_args);
   EXPECT_TRUE(Cpp::Process("") == 0);
   EXPECT_TRUE(Cpp::Process("int a = 12;") == 0);
@@ -178,11 +177,14 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, Interpreter_Process) {
 
 TYPED_TEST(CPPINTEROP_TEST_MODE, Interpreter_EmscriptenExceptionHandling) {
 #ifndef EMSCRIPTEN
-  GTEST_SKIP() << "This test is intended to check exception handling for "
-                  "Emscripten builds.";
+  GTEST_SKIP() << "This test is intended to check exception handling for Emscripten builds.";
 #endif
-  std::vector<const char*> Args = {"-std=c++20", "-v", "-fwasm-exceptions",
-                                   "-mllvm", "-wasm-enable-sjlj"};
+    std::vector<const char*> Args = {
+    "-std=c++20",
+    "-v",
+    "-fwasm-exceptions",
+    "-mllvm","-wasm-enable-sjlj"
+  };
 
   Cpp::CreateInterpreter(Args, {});
 
@@ -234,7 +236,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, Interpreter_CreateInterpreter) {
 #ifndef CPPINTEROP_USE_CLING
 TYPED_TEST(CPPINTEROP_TEST_MODE, Interpreter_CreateInterpreterCAPI) {
   const char* argv[] = {"-std=c++17"};
-  auto* CXI = clang_createInterpreter(argv, 1);
+  auto *CXI = clang_createInterpreter(argv, 1);
   auto CLI = clang_Interpreter_getClangInterpreter(CXI);
   EXPECT_TRUE(CLI);
   clang_Interpreter_dispose(CXI);
@@ -245,7 +247,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, Interpreter_CreateInterpreterCAPIFailure) {
   GTEST_SKIP() << "Disabled on Windows. Needs fixing.";
 #endif
   const char* argv[] = {"-fsyntax-only", "-Xclang", "-invalid-plugin"};
-  auto* CXI = clang_createInterpreter(argv, 3);
+  auto *CXI = clang_createInterpreter(argv, 3);
   EXPECT_EQ(CXI, nullptr);
 }
 #endif
@@ -316,7 +318,7 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, Interpreter_IncludePaths) {
   Cpp::AddIncludePath("/non/existent/");
   Cpp::GetIncludePaths(includes);
   EXPECT_NE(std::find(includes.begin(), includes.end(), "/non/existent/"),
-            std::end(includes));
+             std::end(includes));
 }
 
 TYPED_TEST(CPPINTEROP_TEST_MODE, Interpreter_CodeCompletion) {
@@ -360,23 +362,22 @@ TYPED_TEST(CPPINTEROP_TEST_MODE, Interpreter_ExternalInterpreter) {
 #endif // CPPINTEROP_USE_REPL
 
 #ifdef CPPINTEROP_USE_CLING
-  std::string MainExecutableName = sys::fs::getMainExecutable(nullptr, nullptr);
-  llvm::SmallString<128> P(LLVM_BINARY_DIR);
-  llvm::sys::path::append(P, CLANG_INSTALL_LIBDIR_BASENAME, "clang",
-                          CLANG_VERSION_MAJOR_STRING);
-  std::string ResourceDir = std::string(P.str());
-  std::vector<const char*> ClingArgv = {"-resource-dir", ResourceDir.c_str(),
-                                        "-std=c++14"};
-  ClingArgv.insert(ClingArgv.begin(), MainExecutableName.c_str());
-  auto* ExtInterp = new compat::Interpreter(ClingArgv.size(), &ClingArgv[0]);
-#endif
+    std::string MainExecutableName = sys::fs::getMainExecutable(nullptr, nullptr);
+    llvm::SmallString<128> P(LLVM_BINARY_DIR);
+    llvm::sys::path::append(P, CLANG_INSTALL_LIBDIR_BASENAME, "clang",
+                            CLANG_VERSION_MAJOR_STRING);
+    std::string ResourceDir = std::string(P.str());
+    std::vector<const char *> ClingArgv = {"-resource-dir", ResourceDir.c_str(),
+                                           "-std=c++14"};
+    ClingArgv.insert(ClingArgv.begin(), MainExecutableName.c_str());
+    auto *ExtInterp = new compat::Interpreter(ClingArgv.size(), &ClingArgv[0]);
+    #endif
 
   EXPECT_NE(ExtInterp, nullptr);
 
 #if !defined(NDEBUG) && GTEST_HAS_DEATH_TEST
 #ifndef _WIN32 // Windows seems to fail to die...
-  EXPECT_DEATH(Cpp::UseExternalInterpreter(ExtInterp),
-               "sInterpreter already in use!");
+    EXPECT_DEATH(Cpp::UseExternalInterpreter(ExtInterp), "sInterpreter already in use!");
 #endif // _WIN32
 #endif
   EXPECT_TRUE(Cpp::GetInterpreter()) << "External Interpreter not set";
