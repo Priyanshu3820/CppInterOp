@@ -3224,8 +3224,6 @@ TYPED_TEST(CPPINTEROP_TEST_MODE,
   std::vector<Cpp::TemplateArgInfo> args;
   std::vector<Cpp::TemplateArgInfo> explicit_args;
 
-  ASTContext& C = Interp->getCI()->getASTContext();
-
   // lvalue object (MyClass&)
   Cpp::TCppType_t non_const_obj_type = Cpp::GetTypeFromScope(myclass);
   Cpp::TCppType_t non_const_ref_type =
